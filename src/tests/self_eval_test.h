@@ -3,8 +3,8 @@
 
 #include <cassert>
 #include "test_utils.h"
+#include "../expression_helpers.h"
 #include "../eva.h"
-#include "../eval_types.h"
 
 void runSelfEvalTests(Eva& eva) {
     using namespace std;
