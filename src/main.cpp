@@ -9,8 +9,10 @@ int main() {
     runTests(eva);
 
 //    Example usage:
-//    std::vector<std::string> exp = {"begin", "var", "foo", "10"};
-//    std::cout << eva.evalGlobal(exp) << std::endl;
+    auto exp = beg(
+            var(foo, 10)
+    );
+    std::cout << get<int>(eva.eval(std::move(exp))) << std::endl;
 
     return 0;
 }

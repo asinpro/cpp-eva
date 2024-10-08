@@ -16,4 +16,12 @@ add_executable(cpp_eva src/main.cpp
         src/tests/test_utils.h
         src/tests/math_test.h
         src/tests/tests.h
-        src/eval_types.cpp)
+        src/eval_types.cpp
+        src/tests/if_test.h
+        src/expression_helpers.h
+        src/expressions.h
+        src/expressions.cpp
+        src/tests/while_test.h
+        src/tests/block_test.h
+        src/tests/built_in_func_test.h
+        src/tests/user_defined_func_test.h)
