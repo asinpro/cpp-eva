@@ -24,4 +24,7 @@ add_executable(cpp_eva src/main.cpp
         src/tests/while_test.h
         src/tests/block_test.h
         src/tests/built_in_func_test.h
-        src/tests/user_defined_func_test.h)
+        src/tests/user_defined_func_test.h
+        src/tests/lambda_func_test.h
+        src/tests/for_loop_test.h
+        src/tests/switch_test.h)

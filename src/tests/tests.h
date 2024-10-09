@@ -10,6 +10,9 @@
 #include "while_test.h"
 #include "built_in_func_test.h"
 #include "user_defined_func_test.h"
+#include "lambda_func_test.h"
+#include "for_loop_test.h"
+#include "switch_test.h"
 
 void runTests(Eva& eva) {
     runSelfEvalTests(eva);
@@ -20,6 +23,9 @@ void runTests(Eva& eva) {
     runWhileTests(eva);
     runBuildInFunTest(eva);
     runUserDefinedFuncTest(eva);
+    runLambdaFuncTest(eva);
+    runForLoopTest(eva);
+    runSwitchTest(eva);
 
     eva.eval(print("Hello", " ", "World"));
 
