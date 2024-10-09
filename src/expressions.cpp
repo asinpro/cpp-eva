@@ -71,13 +71,28 @@ EvalResult Loop::eval(std::shared_ptr<Environment> env) const {
     return result;
 }
 
-EvalResult FunctionDefinition::eval(std::shared_ptr<Environment> env) const {
-    env->define(name, Function(name, params, body, env));
-    return Null{};
+EvalResult FunctionDeclaration::eval(std::shared_ptr<Environment> env) const {
+    // JIT-transpile to variable declaration
+
+    auto _this = const_cast<FunctionDeclaration*>(this);
+    auto lambda = Lambda::create(params, std::move(_this->body));
+
+    auto value = lambda->eval(env);
+    env->define(name, value);
+    return value;
 }
 
-EvalResult FunctionCall::eval(std::shared_ptr<Environment> env) const {
-    const auto fun = get<Function>(env->lookup(name));
+Function FunctionCall::resolveFunction(std::shared_ptr<Environment> env) const {
+    return get<Function>(env->lookup(name));
+}
+
+EvalResult Lambda::eval(std::shared_ptr<Environment> env) const {
+    auto _this = const_cast<Lambda*>(this);
+    return Function(name, params, move(_this->body), env);
+}
+
+EvalResult AnonymousFunctionCall::eval(std::shared_ptr<Environment> env) const {
+    const auto fun = resolveFunction(env);
     auto funEnv = make_shared<Environment>(EvalMap{}, fun.env);
 
     for (size_t i = 0; i < fun.params.size(); ++i) {
@@ -85,4 +100,34 @@ EvalResult FunctionCall::eval(std::shared_ptr<Environment> env) const {
     }
 
     return fun.body->eval(funEnv);
+}
+
+Function AnonymousFunctionCall::resolveFunction(std::shared_ptr<Environment> env) const {
+    return get<Function>(function->eval(nullptr));
+}
+
+EvalResult ForLoop::eval(std::shared_ptr<Environment> env) const {
+    // JIT-transpile to while loop
+
+    auto _ = init->eval(env);
+    auto _this = const_cast<ForLoop*>(this);
+
+    vector<unique_ptr<Expression>> bodyExpressions;
+    bodyExpressions.push_back(std::move(_this->body));
+    bodyExpressions.push_back(std::move(_this->modifier));
+
+    auto whileLoop = Loop::create(std::move(_this->condition), Block::create(std::move(bodyExpressions)));
+    return whileLoop->eval(env);
+}
+
+EvalResult Switch::eval(std::shared_ptr<Environment> env) const {
+    // TODO: JIT-transpile to if-else chain
+
+    for (const auto& branch : cases) {
+        if (get<bool>(branch.first->eval(env))) {
+            return branch.second->eval(env);
+        }
+    }
+
+    return Null{};
 }
