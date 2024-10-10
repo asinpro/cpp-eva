@@ -40,7 +40,7 @@ inline auto lit(EvalResult value) {
     return Literal::create(std::move(value));
 }
 
-inline auto wrap(std::unique_ptr<Expression> value) {
+inline auto wrap(ExpressionPtr value) {
     return std::move(value);
 }
 
@@ -50,21 +50,21 @@ inline auto wrap(EvalResult value) {
 
 template<typename ...Args>
 inline auto beg(Args&&... args) {
-    std::vector<std::unique_ptr<Expression>> expressions;
+    std::vector<ExpressionPtr> expressions;
     (expressions.push_back(std::forward<Args>(args)), ...);
     return Block::create(std::move(expressions));
 }
 
-inline auto iff(std::unique_ptr<Expression> condition, std::unique_ptr<Expression> then, std::unique_ptr<Expression> otherwise) {
+inline auto iff(ExpressionPtr condition, ExpressionPtr then, ExpressionPtr otherwise) {
     return Condition::create(std::move(condition), std::move(then), std::move(otherwise));
 }
 
-inline std::unique_ptr<Expression> loop(std::unique_ptr<Expression> condition, std::unique_ptr<Expression> body) {
+inline ExpressionPtr loop(ExpressionPtr condition, ExpressionPtr body) {
 //    return iff(std::move(condition), beg(std::move(body), loop(std::make_unique<Condition>(*condition)), std::move(body))), lit(Null{}));
     return Loop::create(std::move(condition), std::move(body));
 }
 
-inline auto floop(std::unique_ptr<Expression> init, std::unique_ptr<Expression> condition, std::unique_ptr<Expression> modifier, std::unique_ptr<Expression> body) {
+inline auto floop(ExpressionPtr init, ExpressionPtr condition, ExpressionPtr modifier, ExpressionPtr body) {
     return ForLoop::create(std::move(init), std::move(condition), std::move(modifier), std::move(body));
 }
 
@@ -72,7 +72,7 @@ inline auto $id(std::string name) {
     return Identifier::create(std::move(name));
 }
 
-inline auto $var(std::string name, std::unique_ptr<Expression> value) {
+inline auto $var(std::string name, ExpressionPtr value) {
     return VariableDeclaration::create(std::move(name), std::move(value));
 }
 
@@ -80,7 +80,7 @@ inline auto $var(std::string name, EvalResult value) {
     return $var(std::move(name), lit(std::move(value)));
 }
 
-inline auto $set(std::string name, std::unique_ptr<Expression> value) {
+inline auto $set(std::string name, ExpressionPtr value) {
     return Assignment::create(std::move(name), std::move(value));
 }
 
@@ -88,8 +88,8 @@ inline auto $set(std::string name, EvalResult value) {
     return $set(std::move(name), lit(std::move(value)));
 }
 
-inline auto gt(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs) {
-    return BinaryOperation::create('>', std::move(lhs), std::move(rhs));
+inline auto gt(ExpressionPtr lhs, ExpressionPtr rhs) {
+    return BinaryOperation::create(BinaryOperationType::GREATER, std::move(lhs), std::move(rhs));
 }
 
 template<typename T, typename U>
@@ -97,8 +97,8 @@ inline auto gt(T&& lhs, U&& rhs) {
     return gt(wrap(std::forward<T>(lhs)), wrap(std::forward<U>(rhs)));
 }
 
-inline auto gte(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs) {
-    return BinaryOperation::create('>=', std::move(lhs), std::move(rhs));
+inline auto gte(ExpressionPtr lhs, ExpressionPtr rhs) {
+    return BinaryOperation::create(BinaryOperationType::GREATER_OR_EQUAL, std::move(lhs), std::move(rhs));
 }
 
 template<typename T, typename U>
@@ -106,8 +106,8 @@ inline auto gte(T&& lhs, U&& rhs) {
     return gte(wrap(std::forward<T>(lhs)), wrap(std::forward<U>(rhs)));
 }
 
-inline auto lt(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs) {
-    return std::make_unique<BinaryOperation>('<', std::move(lhs), std::move(rhs));
+inline auto lt(ExpressionPtr lhs, ExpressionPtr rhs) {
+    return std::make_unique<BinaryOperation>(BinaryOperationType::LESS, std::move(lhs), std::move(rhs));
 }
 
 template<typename T, typename U>
@@ -115,8 +115,8 @@ inline auto lt(T&& lhs, U&& rhs) {
     return lt(wrap(std::forward<T>(lhs)), wrap(std::forward<U>(rhs)));
 }
 
-inline auto lte(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs) {
-    return BinaryOperation::create('<=', std::move(lhs), std::move(rhs));
+inline auto lte(ExpressionPtr lhs, ExpressionPtr rhs) {
+    return BinaryOperation::create(BinaryOperationType::LESS_OR_EQUAL, std::move(lhs), std::move(rhs));
 }
 
 template<typename T, typename U>
@@ -124,8 +124,8 @@ inline auto lte(T&& lhs, U&& rhs) {
     return lte(wrap(std::forward<T>(lhs)), wrap(std::forward<U>(rhs)));
 }
 
-inline auto eq(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs) {
-    return std::make_unique<BinaryOperation>('=', std::move(lhs), std::move(rhs));
+inline auto eq(ExpressionPtr lhs, ExpressionPtr rhs) {
+    return std::make_unique<BinaryOperation>(BinaryOperationType::EQUAL, std::move(lhs), std::move(rhs));
 }
 
 template<typename T, typename U>
@@ -133,8 +133,8 @@ inline auto eq(T&& lhs, U&& rhs) {
     return eq(wrap(std::forward<T>(lhs)), wrap(std::forward<U>(rhs)));
 }
 
-inline auto neq(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs) {
-    return std::make_unique<BinaryOperation>('!=', std::move(lhs), std::move(rhs));
+inline auto neq(ExpressionPtr lhs, ExpressionPtr rhs) {
+    return std::make_unique<BinaryOperation>(BinaryOperationType::NOT_EQUAL, std::move(lhs), std::move(rhs));
 }
 
 template<typename T, typename U>
@@ -142,8 +142,8 @@ inline auto neq(T&& lhs, U&& rhs) {
     return neq(wrap(std::forward<T>(lhs)), wrap(std::forward<U>(rhs)));
 }
 
-inline auto add(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs) {
-    return BinaryOperation::create('+', std::move(lhs), std::move(rhs));
+inline auto add(ExpressionPtr lhs, ExpressionPtr rhs) {
+    return BinaryOperation::create(BinaryOperationType::ADDITION, std::move(lhs), std::move(rhs));
 }
 
 template<typename T, typename U>
@@ -151,8 +151,8 @@ inline auto add(T&& lhs, U&& rhs) {
     return add(wrap(std::forward<T>(lhs)), wrap(std::forward<U>(rhs)));
 }
 
-inline auto sub(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs) {
-    return BinaryOperation::create('-', std::move(lhs), std::move(rhs));
+inline auto sub(ExpressionPtr lhs, ExpressionPtr rhs) {
+    return BinaryOperation::create(BinaryOperationType::SUBTRACTION, std::move(lhs), std::move(rhs));
 }
 
 template<typename T, typename U>
@@ -160,8 +160,8 @@ inline auto sub(T&& lhs, U&& rhs) {
     return sub(wrap(std::forward<T>(lhs)), wrap(std::forward<U>(rhs)));
 }
 
-inline auto mul(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs) {
-    return BinaryOperation::create('*', std::move(lhs), std::move(rhs));
+inline auto mul(ExpressionPtr lhs, ExpressionPtr rhs) {
+    return BinaryOperation::create(BinaryOperationType::MULTIPLICATION, std::move(lhs), std::move(rhs));
 }
 
 template<typename T, typename U>
@@ -169,8 +169,8 @@ inline auto mul(T&& lhs, U&& rhs) {
     return mul(wrap(std::forward<T>(lhs)), wrap(std::forward<U>(rhs)));
 }
 
-inline auto divv(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs) {
-    return BinaryOperation::create('/', std::move(lhs), std::move(rhs));
+inline auto divv(ExpressionPtr lhs, ExpressionPtr rhs) {
+    return BinaryOperation::create(BinaryOperationType::DIVISION, std::move(lhs), std::move(rhs));
 }
 
 template<typename T, typename U>
@@ -178,7 +178,16 @@ inline auto divv(T&& lhs, U&& rhs) {
     return divv(wrap(std::forward<T>(lhs)), wrap(std::forward<U>(rhs)));
 }
 
-inline auto $def(std::string name, std::vector<std::string> args, std::unique_ptr<Expression> body) {
+inline auto mod(ExpressionPtr lhs, ExpressionPtr rhs) {
+    return BinaryOperation::create(BinaryOperationType::MOD, std::move(lhs), std::move(rhs));
+}
+
+template<typename T, typename U>
+inline auto mod(T&& lhs, U&& rhs) {
+    return mod(wrap(std::forward<T>(lhs)), wrap(std::forward<U>(rhs)));
+}
+
+inline auto $def(std::string name, std::vector<std::string> args, ExpressionPtr body) {
     return FunctionDeclaration::create(std::move(name), std::move(args), std::move(body));
 }
 
@@ -186,7 +195,7 @@ inline auto $def(std::string name, std::vector<std::string> args, EvalResult bod
     return $def(std::move(name), std::move(args), lit(std::move(body)));
 }
 
-inline auto lambda(std::vector<std::string> args, std::unique_ptr<Expression> body) {
+inline auto lambda(std::vector<std::string> args, ExpressionPtr body) {
     return Lambda::create(std::move(args), std::move(body));
 }
 
@@ -199,12 +208,12 @@ inline auto $args(Args&&... args) {
 
 template<typename ...Args>
 inline auto vars(Args&&... args) {
-    std::vector<std::unique_ptr<Expression>> expressions;
+    std::vector<ExpressionPtr> expressions;
     (expressions.push_back(wrap(std::forward<Args>(args))), ...);
     return expressions;
 }
 
-inline auto $call(std::string name, std::vector<std::unique_ptr<Expression>> args) {
+inline auto $call(std::string name, std::vector<ExpressionPtr> args) {
     return FunctionCall::create(std::move(name), std::move(args));
 }
 
@@ -213,28 +222,28 @@ inline auto $call(std::string name, Args&&... args) {
     return $call(std::move(name), vars(std::forward<Args>(args)...));
 }
 
-inline auto iile(std::unique_ptr<Expression> exp, std::vector<std::unique_ptr<Expression>> args) {
+inline auto iile(ExpressionPtr exp, std::vector<ExpressionPtr> args) {
     return AnonymousFunctionCall::create(std::move(exp), std::move(args));
 }
 
 template<typename ...Args>
-inline auto iile(std::unique_ptr<Expression> exp, Args&&... args) {
+inline auto iile(ExpressionPtr exp, Args&&... args) {
     return iile(std::move(exp), vars(std::forward<Args>(args)...));
 }
 
 template<typename T>
-inline std::pair<std::unique_ptr<Expression>, std::unique_ptr<Expression>> when(std::unique_ptr<Expression> condition, T&& body) {
+inline std::pair<ExpressionPtr, ExpressionPtr> when(ExpressionPtr condition, T&& body) {
     return std::make_pair(std::move(condition), wrap(std::forward<T>(body)));
 }
 
 template<typename T>
-inline std::pair<std::unique_ptr<Expression>, std::unique_ptr<Expression>> any(T&& value) {
+inline std::pair<ExpressionPtr, ExpressionPtr> any(T&& value) {
     return std::make_pair(TRUE, wrap(std::forward<T>(value)));
 }
 
 template<typename ...Args>
 inline auto select(Args&&... args) {
-    auto cases = std::vector<std::pair<std::unique_ptr<Expression>, std::unique_ptr<Expression>>>();
+    auto cases = std::vector<std::pair<ExpressionPtr, ExpressionPtr>>();
     (cases.push_back(std::forward<Args>(args)), ...);
     return Switch::create(std::move(cases));
 }

@@ -25,20 +25,28 @@ EvalResult BinaryOperation::eval(std::shared_ptr<Environment> env) const {
     const int rhs = get<int>(right->eval(env));
 
     switch (type) {
-        case '+':
+        case BinaryOperationType::ADDITION:
             return lhs + rhs;
-        case '-':
+        case BinaryOperationType::SUBTRACTION:
             return lhs - rhs;
-        case '*':
+        case BinaryOperationType::MULTIPLICATION:
             return lhs * rhs;
-        case '/':
+        case BinaryOperationType::DIVISION:
             return lhs / rhs;
-        case '>':
+        case BinaryOperationType::MOD:
+            return lhs % rhs;
+        case BinaryOperationType::GREATER:
             return lhs > rhs;
-        case '<':
+        case BinaryOperationType::LESS:
             return lhs < rhs;
-        case '=':
+        case BinaryOperationType::EQUAL:
             return lhs == rhs;
+        case BinaryOperationType::NOT_EQUAL:
+            return lhs != rhs;
+        case BinaryOperationType::GREATER_OR_EQUAL:
+            return lhs >= rhs;
+        case BinaryOperationType::LESS_OR_EQUAL:
+            return lhs <= rhs;
         default:
             throw runtime_error("Unknown operation: " + string(1, type));
     }

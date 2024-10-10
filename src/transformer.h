@@ -6,7 +6,7 @@
 
 class Transformer {
 public:
-    auto transformForToWhile(std::unique_ptr<Expression> forLoop) {
+    auto transformForToWhile(ExpressionPtr forLoop) {
 //        auto loop = dynamic_cast<Loop*>(forLoop.get());
 //        auto condition = std::move(loop->condition);
 //        auto body = std::move(loop->body);

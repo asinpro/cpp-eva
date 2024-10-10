@@ -20,7 +20,7 @@ ostream& operator<<(ostream& os, const vector<T>& vec) {
     return os;
 }
 
-EvalResult Eva::eval(std::unique_ptr<Expression> exp, std::shared_ptr<Environment> env) {
+EvalResult Eva::eval(ExpressionPtr exp, std::shared_ptr<Environment> env) {
     try {
         return _eval(std::move(exp), env);
     } catch (const std::exception& e) {
@@ -29,7 +29,7 @@ EvalResult Eva::eval(std::unique_ptr<Expression> exp, std::shared_ptr<Environmen
     return Null{};
 }
 
-EvalResult Eva::_eval(std::unique_ptr<Expression> exp, std::shared_ptr<Environment> env) {
+EvalResult Eva::_eval(ExpressionPtr exp, std::shared_ptr<Environment> env) {
     return exp->eval(env ? env : global);
 /*
     // Variable update: (set foo 10)

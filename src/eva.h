@@ -56,10 +56,10 @@ public:
 //        return _evalBody(exp, global);
     }
 
-    EvalResult eval(std::unique_ptr<Expression> exp, std::shared_ptr<Environment> env = nullptr);
+    EvalResult eval(ExpressionPtr exp, std::shared_ptr<Environment> env = nullptr);
 
 private:
-    EvalResult _eval(std::unique_ptr<Expression> exp, std::shared_ptr<Environment> env);
+    EvalResult _eval(ExpressionPtr exp, std::shared_ptr<Environment> env);
 
     int _evalBody(const std::vector<std::string>& exp, std::shared_ptr<Environment> env) {
         // Implement body evaluation
