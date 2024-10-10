@@ -121,13 +121,25 @@ EvalResult ForLoop::eval(std::shared_ptr<Environment> env) const {
 }
 
 EvalResult Switch::eval(std::shared_ptr<Environment> env) const {
-    // TODO: JIT-transpile to if-else chain
-
-    for (const auto& branch : cases) {
-        if (get<bool>(branch.first->eval(env))) {
-            return branch.second->eval(env);
-        }
+    if (cases.empty()) {
+        return Null{};
     }
 
-    return Null{};
+    auto _this = const_cast<Switch*>(this);
+
+    unique_ptr<Condition> condition = Condition::create(
+            std::move(_this->cases.back().first),
+            std::move(_this->cases.back().second),
+            nullptr
+    );
+
+    for (auto i = cases.size() - 1; i > 0; --i) {
+        condition = Condition::create(
+                std::move(_this->cases[i - 1].first),
+                std::move(_this->cases[i - 1].second),
+                std::move(condition)
+        );
+    }
+
+    return condition->eval(env);
 }

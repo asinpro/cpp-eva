@@ -35,6 +35,45 @@ void runSwitchTest(Eva& eva) {
                     )
             )
     ,300);
+
+    IASSERT(
+            beg(
+                    var(x, 10),
+                    select(when(eq(id(x), 10), 100),
+                           any(300)
+                    )
+            )
+    ,100);
+
+    IASSERT(
+            beg(
+                    var(x, 1),
+                    select(when(eq(id(x), 10), 100),
+                           any(300)
+                    )
+            )
+    ,300);
+
+    IASSERT(
+            beg(
+                    var(x, 10),
+                    select(when(eq(id(x), 10), 100))
+            )
+    ,100);
+
+    IASSERT(
+            beg(
+                    var(x, 10),
+                    select(any(100))
+            )
+    ,100);
+
+    // overflow test
+    NASSERT(
+            beg(
+                    select()
+            )
+    );
 }
 
 #endif //CPP_EVA_SWITCH_TEST_H
