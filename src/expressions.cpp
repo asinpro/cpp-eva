@@ -141,7 +141,7 @@ EvalResult Switch::eval(std::shared_ptr<Environment> env) const {
             nullptr
     );
 
-    for (auto i = cases.size() - 1; i > 0; --i) {
+    for (auto i = cases.size(); i --> 1; ) {
         condition = Condition::create(
                 std::move(_this->cases[i - 1].first),
                 std::move(_this->cases[i - 1].second),
