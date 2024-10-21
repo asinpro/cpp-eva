@@ -153,6 +153,30 @@ EvalResult Switch::eval(std::shared_ptr<Environment> env) const {
 }
 
 EvalResult Increment::eval(std::shared_ptr<Environment> env) const {
+    // JIT-transpile to addition with assignment
+
+    auto assignment = Assignment::create(identifier->getName(), BinaryOperation::create(
+            BinaryOperationType::ADDITION,
+            Literal::create(identifier->eval(env)),
+            Literal::create(1)
+    ));
+
+    return assignment->eval(env);
+}
+
+EvalResult Decrement::eval(std::shared_ptr<Environment> env) const {
+    // JIT-transpile to subtraction with assignment
+
+    auto assignment = Assignment::create(identifier->getName(), BinaryOperation::create(
+            BinaryOperationType::SUBTRACTION,
+            Literal::create(identifier->eval(env)),
+            Literal::create(1)
+    ));
+
+    return assignment->eval(env);
+}
+
+EvalResult Increment::eval(std::shared_ptr<Environment> env) const {
     // TODO: JIT-transpile to addition with assignment
 
     auto value = identifier->eval(env);

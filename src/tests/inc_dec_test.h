@@ -14,8 +14,11 @@ void runIncDecTest(Eva& eva) {
     , 11);
 
     IASSERT(
-            dec(10)
-    ,9);
+            beg(
+                    var(y, 10),
+                    dec(y)
+            )
+    , 9);
 }
 
 #endif //CPP_EVA_INC_DEC_TEST_H

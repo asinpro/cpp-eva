@@ -19,6 +19,7 @@
 #define def(name, args, body) $def(#name, args, body)
 #define call(name, ...) $call(#name, __VA_ARGS__)
 #define inc(name) $inc(id(name))
+#define dec(name) $dec(id(name))
 
 #define args() {}
 #define args1(a) $args(#a)
@@ -197,12 +198,12 @@ inline auto $inc(T&& value) {
     return inc(wrap(std::forward<T>(value)));
 }
 
-inline auto dec(ExpressionPtr value) {
-    return sub(std::move(value), lit(1));
+inline auto $dec(IdentifierPtr value) {
+    return Decrement::create(std::move(value));
 }
 
 template<typename T>
-inline auto dec(T&& value) {
+inline auto $dec(T&& value) {
     return dec(wrap(std::forward<T>(value)));
 }
 

@@ -79,8 +79,11 @@ public:
 
     [[nodiscard]] EvalResult eval(std::shared_ptr<Environment> env) const override;
 
+    [[nodiscard]] std::string getName() const {
+        return name;
+    }
+
 private:
-    friend class Increment;
     std::string name;
 };
 
@@ -269,6 +272,20 @@ public:
     }
 
     explicit Increment(IdentifierPtr _identifier) : identifier(std::move(_identifier)) {}
+
+    [[nodiscard]] EvalResult eval(std::shared_ptr<Environment> env) const override;
+
+private:
+    IdentifierPtr identifier;
+};
+
+class Decrement : public Expression {
+public:
+    static auto create(IdentifierPtr identifier) {
+        return std::make_unique<Decrement>(std::move(identifier));
+    }
+
+    explicit Decrement(IdentifierPtr _identifier) : identifier(std::move(_identifier)) {}
 
     [[nodiscard]] EvalResult eval(std::shared_ptr<Environment> env) const override;
 
