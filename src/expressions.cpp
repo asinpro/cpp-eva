@@ -151,3 +151,18 @@ EvalResult Switch::eval(std::shared_ptr<Environment> env) const {
 
     return condition->eval(env);
 }
+
+EvalResult Increment::eval(std::shared_ptr<Environment> env) const {
+    // TODO: JIT-transpile to addition with assignment
+
+    auto value = identifier->eval(env);
+    auto result = get<int>(value) + 1;
+    env->assign(identifier->name, result);
+    return result;
+
+//    Assignment::create(identifier->name, BinaryOperation::create(
+//            BinaryOperationType::ADDITION,
+//            const_cast<Increment*>(this)->identifier,
+//            Literal::create(1)
+//    ))->eval(env);
+}

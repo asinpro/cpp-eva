@@ -18,6 +18,7 @@
 #define set(name, value) $set(#name, value)
 #define def(name, args, body) $def(#name, args, body)
 #define call(name, ...) $call(#name, __VA_ARGS__)
+#define inc(name) $inc(id(name))
 
 #define args() {}
 #define args1(a) $args(#a)
@@ -185,6 +186,24 @@ inline auto mod(ExpressionPtr lhs, ExpressionPtr rhs) {
 template<typename T, typename U>
 inline auto mod(T&& lhs, U&& rhs) {
     return mod(wrap(std::forward<T>(lhs)), wrap(std::forward<U>(rhs)));
+}
+
+inline auto $inc(IdentifierPtr value) {
+    return Increment::create(std::move(value));
+}
+
+template<typename T>
+inline auto $inc(T&& value) {
+    return inc(wrap(std::forward<T>(value)));
+}
+
+inline auto dec(ExpressionPtr value) {
+    return sub(std::move(value), lit(1));
+}
+
+template<typename T>
+inline auto dec(T&& value) {
+    return dec(wrap(std::forward<T>(value)));
 }
 
 inline auto $def(std::string name, std::vector<std::string> args, ExpressionPtr body) {

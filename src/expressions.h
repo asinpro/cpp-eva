@@ -80,8 +80,11 @@ public:
     [[nodiscard]] EvalResult eval(std::shared_ptr<Environment> env) const override;
 
 private:
+    friend class Increment;
     std::string name;
 };
+
+using IdentifierPtr = std::unique_ptr<Identifier>;
 
 struct Literal : public Expression {
 public:
@@ -257,6 +260,20 @@ public:
 
 private:
     std::vector<std::pair<ExpressionPtr, ExpressionPtr>> cases;
+};
+
+class Increment : public Expression {
+public:
+    static auto create(IdentifierPtr identifier) {
+        return std::make_unique<Increment>(std::move(identifier));
+    }
+
+    explicit Increment(IdentifierPtr _identifier) : identifier(std::move(_identifier)) {}
+
+    [[nodiscard]] EvalResult eval(std::shared_ptr<Environment> env) const override;
+
+private:
+    IdentifierPtr identifier;
 };
 
 #endif //CPP_EVA_EXPRESSIONS_H

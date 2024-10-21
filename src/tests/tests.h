@@ -13,6 +13,7 @@
 #include "lambda_func_test.h"
 #include "for_loop_test.h"
 #include "switch_test.h"
+#include "inc_dec_test.h"
 
 void runTests(Eva& eva) {
     runSelfEvalTests(eva);
@@ -26,6 +27,7 @@ void runTests(Eva& eva) {
     runLambdaFuncTest(eva);
     runForLoopTest(eva);
     runSwitchTest(eva);
+    runIncDecTest(eva);
 
     eva.eval(print("Hello", " ", "World"));
 
