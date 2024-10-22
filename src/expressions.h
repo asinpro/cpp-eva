@@ -30,11 +30,17 @@ public:
     explicit Block(std::vector<ExpressionPtr> expressions)
             : expressions(std::move(expressions)) {}
 
+    Block(Block&& other) noexcept;
+
     [[nodiscard]] EvalResult eval(std::shared_ptr<Environment> env) const override;
 
-private:
+    [[nodiscard]] EvalResult evalBlock(std::shared_ptr<Environment> env) const;
+
+protected:
     std::vector<ExpressionPtr> expressions;
 };
+
+using BlockPtr = std::unique_ptr<Block>;
 
 class Condition : public Expression {
 public:
@@ -83,7 +89,7 @@ public:
         return name;
     }
 
-private:
+protected:
     std::string name;
 };
 
@@ -121,20 +127,30 @@ private:
     ExpressionPtr value;
 };
 
+using MemberAccessPtr = std::unique_ptr<class MemberAccess>;
+
 class Assignment : public Expression {
 public:
     static auto create(std::string name, ExpressionPtr value) {
         return std::make_unique<Assignment>(std::move(name), std::move(value));
     }
 
+    static auto create(MemberAccessPtr memberAccess, ExpressionPtr value) {
+        return std::make_unique<Assignment>(std::move(memberAccess), std::move(value));
+    }
+
     Assignment(std::string name, ExpressionPtr value)
             : name(std::move(name)), value(std::move(value)) {}
+
+    Assignment(MemberAccessPtr memberAccess, ExpressionPtr value)
+            : memberAccess(std::move(memberAccess)), value(std::move(value)) {}
 
     [[nodiscard]] EvalResult eval(std::shared_ptr<Environment> env) const override;
 
 private:
     std::string name;
     ExpressionPtr value;
+    MemberAccessPtr memberAccess;
 };
 
 enum BinaryOperationType {
@@ -184,9 +200,23 @@ protected:
     ExpressionPtr body;
 };
 
+using FunctionDeclarationPtr = std::unique_ptr<FunctionDeclaration>;
+
+class Lambda : public FunctionDeclaration {
+public:
+    static auto create(std::vector<std::string> params, ExpressionPtr body) {
+        return std::make_unique<Lambda>(std::move(params), std::move(body));
+    }
+
+    Lambda(std::vector<std::string> params, ExpressionPtr _body)
+            : FunctionDeclaration("", std::move(params), std::move(_body)) {}
+
+    [[nodiscard]] EvalResult eval(std::shared_ptr<Environment> env) const override;
+};
+
 class AnonymousFunctionCall : public Expression {
 public:
-    static auto create(ExpressionPtr function, std::vector<ExpressionPtr> args) {
+    static auto create(FunctionDeclarationPtr function, std::vector<ExpressionPtr> args) {
         return std::make_unique<AnonymousFunctionCall>(std::move(function), std::move(args));
     }
 
@@ -196,7 +226,9 @@ public:
     [[nodiscard]] EvalResult eval(std::shared_ptr<Environment> env) const override;
 
 protected:
-    [[nodiscard]] virtual Function resolveFunction(std::shared_ptr<Environment> env) const;
+    [[nodiscard]] virtual FunctionDefinition resolveFunction(std::shared_ptr<Environment> env) const;
+
+    [[nodiscard]] virtual FunctionDefinition resolveFunctionImpl(std::shared_ptr<Environment> env) const;
 
 private:
     ExpressionPtr function;
@@ -209,27 +241,19 @@ public:
         return std::make_unique<FunctionCall>(std::move(name), std::move(args));
     }
 
-    FunctionCall(std::string name, std::vector<ExpressionPtr> _args)
-            : name(std::move(name)), AnonymousFunctionCall(nullptr, std::move(_args)) {}
+    static auto create(IdentifierPtr identifier, std::vector<ExpressionPtr> args) {
+        return std::make_unique<FunctionCall>(std::move(identifier->getName()), std::move(args));
+    }
+
+    FunctionCall(std::string name, std::vector<ExpressionPtr> args)
+            : name(std::move(name)), AnonymousFunctionCall(nullptr, std::move(args)) {}
 
 protected:
-    [[nodiscard]] Function resolveFunction(std::shared_ptr<Environment> env) const override;
+    [[nodiscard]] FunctionDefinition resolveFunction(std::shared_ptr<Environment> env) const override;
 
 private:
     std::string name;
     std::vector<ExpressionPtr> args;
-};
-
-class Lambda : public FunctionDeclaration {
-public:
-    static auto create(std::vector<std::string> params, ExpressionPtr body) {
-        return std::make_unique<Lambda>(std::move(params), std::move(body));
-    }
-
-    Lambda(std::vector<std::string> _params, ExpressionPtr _body)
-            : FunctionDeclaration("", std::move(_params), std::move(_body)) {}
-
-    [[nodiscard]] EvalResult eval(std::shared_ptr<Environment> env) const override;
 };
 
 class ForLoop : public Expression {
@@ -291,6 +315,77 @@ public:
 
 private:
     IdentifierPtr identifier;
+};
+
+class ClassDeclaration : public Block {
+public:
+    static auto create(std::string name, IdentifierPtr parent, BlockPtr body) {
+        return std::make_unique<ClassDeclaration>(std::move(name), std::move(parent), std::move(body));
+    }
+
+    ClassDeclaration(std::string name, IdentifierPtr parent, BlockPtr body)
+            : Block(std::move(*body.release()))
+            , name(std::move(name)), parent(std::move(parent)), body(std::move(body)) {}
+
+    [[nodiscard]] EvalResult eval(std::shared_ptr<Environment> env) const override;
+
+private:
+    std::string name;
+    IdentifierPtr parent;
+    ExpressionPtr body;
+};
+
+class NewInstance : public Expression {
+public:
+    static auto create(std::string name, std::vector<ExpressionPtr> args) {
+        return std::make_unique<NewInstance>(std::move(name), std::move(args));
+    }
+
+    NewInstance(std::string name, std::vector<ExpressionPtr> args)
+            : name(std::move(name)), args(std::move(args)) {}
+
+    [[nodiscard]] EvalResult eval(std::shared_ptr<Environment> env) const override;
+
+private:
+    std::string name;
+    std::vector<ExpressionPtr> args;
+};
+
+class MemberAccess : public Identifier {
+public:
+    static auto create(std::string instance, std::string member) {
+        return std::make_unique<MemberAccess>(std::move(instance), std::move(member));
+    }
+
+    MemberAccess(std::string instance, std::string member)
+            : Identifier(std::move(member))
+            , instance(std::move(instance)) {}
+
+    [[nodiscard]] EvalResult eval(std::shared_ptr<Environment> env) const override;
+
+    std::string getInstance() const {
+        return instance;
+    }
+
+    std::string getMember() const {
+        return getName();
+    }
+
+private:
+    std::string instance;
+};
+
+class MemberFunctionCall : public AnonymousFunctionCall {
+public:
+    static auto create(MemberAccessPtr memberFunction, std::vector<ExpressionPtr> args) {
+        return std::make_unique<MemberFunctionCall>(std::move(memberFunction), std::move(args));
+    }
+
+    MemberFunctionCall(MemberAccessPtr memberFunction, std::vector<ExpressionPtr> args)
+            : AnonymousFunctionCall(std::move(memberFunction), std::move(args)) {}
+
+protected:
+    [[nodiscard]] FunctionDefinition resolveFunction(std::shared_ptr<Environment> env) const override;
 };
 
 #endif //CPP_EVA_EXPRESSIONS_H

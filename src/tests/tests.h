@@ -14,6 +14,7 @@
 #include "for_loop_test.h"
 #include "switch_test.h"
 #include "inc_dec_test.h"
+#include "class_test.h"
 
 void runTests(Eva& eva) {
     runSelfEvalTests(eva);
@@ -28,6 +29,7 @@ void runTests(Eva& eva) {
     runForLoopTest(eva);
     runSwitchTest(eva);
     runIncDecTest(eva);
+    runClassTest(eva);
 
     eva.eval(print("Hello", " ", "World"));
 

@@ -1,6 +1,7 @@
 #include "expressions.h"
 
 #include <string>
+#include <variant>
 #include "eval_types.h"
 #include "environment.h"
 
@@ -13,6 +14,15 @@ EvalResult VariableDeclaration::eval(std::shared_ptr<Environment> env) const {
 }
 
 EvalResult Assignment::eval(std::shared_ptr<Environment> env) const {
+    if (memberAccess) {
+        auto instanceDefinition = get<InstanceDefinition>(env->lookup(memberAccess->getInstance()));
+        auto memberName = memberAccess->getMember();
+
+        const EvalResult& val = value->eval(env);
+        instanceDefinition.env->define(memberName, val);
+        return val;
+    }
+
     return env->assign(name, value->eval(env));
 }
 
@@ -55,10 +65,17 @@ EvalResult BinaryOperation::eval(std::shared_ptr<Environment> env) const {
 EvalResult Block::eval(std::shared_ptr<Environment> env) const {
     EvalMap vars;
     auto blockEnv = make_shared<Environment>(vars, env);
+    return evalBlock(blockEnv);
+}
 
+Block::Block(Block&& other) noexcept {
+    swap(expressions, other.expressions);
+}
+
+EvalResult Block::evalBlock(std::shared_ptr<Environment> env) const {
     EvalResult result;
     for (const auto& exp : expressions) {
-        result = exp->eval(blockEnv);
+        result = exp->eval(env);
     }
     return result;
 }
@@ -80,7 +97,7 @@ EvalResult Loop::eval(std::shared_ptr<Environment> env) const {
 }
 
 EvalResult FunctionDeclaration::eval(std::shared_ptr<Environment> env) const {
-    // JIT-transpile to variable declaration
+    // JIT-transpile to variable declaration with lambda
 
     auto _this = const_cast<FunctionDeclaration*>(this);
     auto lambda = Lambda::create(params, std::move(_this->body));
@@ -90,13 +107,13 @@ EvalResult FunctionDeclaration::eval(std::shared_ptr<Environment> env) const {
     return value;
 }
 
-Function FunctionCall::resolveFunction(std::shared_ptr<Environment> env) const {
-    return get<Function>(env->lookup(name));
+FunctionDefinition FunctionCall::resolveFunction(std::shared_ptr<Environment> env) const {
+    return get<FunctionDefinition>(env->lookup(name));
 }
 
 EvalResult Lambda::eval(std::shared_ptr<Environment> env) const {
     auto _this = const_cast<Lambda*>(this);
-    return Function(name, params, move(_this->body), env);
+    return FunctionDefinition(name, params, move(_this->body), env);
 }
 
 EvalResult AnonymousFunctionCall::eval(std::shared_ptr<Environment> env) const {
@@ -110,8 +127,12 @@ EvalResult AnonymousFunctionCall::eval(std::shared_ptr<Environment> env) const {
     return fun.body->eval(funEnv);
 }
 
-Function AnonymousFunctionCall::resolveFunction(std::shared_ptr<Environment> env) const {
-    return get<Function>(function->eval(nullptr));
+FunctionDefinition AnonymousFunctionCall::resolveFunction(std::shared_ptr<Environment> env) const {
+    return resolveFunctionImpl(nullptr);
+}
+
+FunctionDefinition AnonymousFunctionCall::resolveFunctionImpl(std::shared_ptr<Environment> env) const {
+    return get<FunctionDefinition>(function->eval(env));
 }
 
 EvalResult ForLoop::eval(std::shared_ptr<Environment> env) const {
@@ -174,4 +195,46 @@ EvalResult Decrement::eval(std::shared_ptr<Environment> env) const {
     ));
 
     return assignment->eval(env);
+}
+
+EvalResult ClassDeclaration::eval(std::shared_ptr<Environment> env) const {
+    auto parentEnv = env;
+    const EvalResult& result = parent->eval(env);
+    if (auto classDefinition = get_if<ClassDefinition>(&result)) {
+        parentEnv = classDefinition->env;
+    }
+
+    auto classEnv = make_shared<Environment>(EvalMap{}, parentEnv);
+    evalBlock(classEnv);
+    env->define(name, ClassDefinition(name, classEnv));
+
+    return Null{};
+}
+
+EvalResult NewInstance::eval(std::shared_ptr<Environment> env) const {
+    auto classDefinition = get<ClassDefinition>(env->lookup(name));
+    auto instanceEnv = make_shared<Environment>(EvalMap{}, classDefinition.env);
+
+    auto constructorDefinition = get<FunctionDefinition>(classDefinition.env->lookup("constructor"));
+    auto constructorEnv = make_shared<Environment>(EvalMap{}, constructorDefinition.env);
+
+    const InstanceDefinition& instanceDefinition = InstanceDefinition(instanceEnv);
+    constructorEnv->define("self", instanceDefinition);
+
+    for (size_t i = 1; i < constructorDefinition.params.size(); ++i) {
+        constructorEnv->define(constructorDefinition.params[i], args[i - 1]->eval(env));
+    }
+
+    constructorDefinition.body->eval(constructorEnv);
+
+    return instanceDefinition;
+}
+
+EvalResult MemberAccess::eval(std::shared_ptr<Environment> env) const {
+    auto instanceDefinition = get<InstanceDefinition>(env->lookup(instance));
+    return instanceDefinition.env->lookup(getMember());
+}
+
+FunctionDefinition MemberFunctionCall::resolveFunction(std::shared_ptr<Environment> env) const {
+    return resolveFunctionImpl(env);
 }

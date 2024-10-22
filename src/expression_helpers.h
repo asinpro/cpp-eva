@@ -20,6 +20,8 @@
 #define call(name, ...) $call(#name, __VA_ARGS__)
 #define inc(name) $inc(id(name))
 #define dec(name) $dec(id(name))
+#define cls(name, parent, body) $cls(#name, parent, body)
+#define prop(instance, member) $prop(#instance, #member)
 
 #define args() {}
 #define args1(a) $args(#a)
@@ -88,6 +90,10 @@ inline auto $set(std::string name, ExpressionPtr value) {
 
 inline auto $set(std::string name, EvalResult value) {
     return $set(std::move(name), lit(std::move(value)));
+}
+
+inline auto $set(MemberAccessPtr memberAccess, ExpressionPtr value) {
+    return Assignment::create(std::move(memberAccess), std::move(value));
 }
 
 inline auto gt(ExpressionPtr lhs, ExpressionPtr rhs) {
@@ -242,12 +248,12 @@ inline auto $call(std::string name, Args&&... args) {
     return $call(std::move(name), vars(std::forward<Args>(args)...));
 }
 
-inline auto iile(ExpressionPtr exp, std::vector<ExpressionPtr> args) {
+inline auto iile(FunctionDeclarationPtr exp, std::vector<ExpressionPtr> args) {
     return AnonymousFunctionCall::create(std::move(exp), std::move(args));
 }
 
 template<typename ...Args>
-inline auto iile(ExpressionPtr exp, Args&&... args) {
+inline auto iile(FunctionDeclarationPtr exp, Args&&... args) {
     return iile(std::move(exp), vars(std::forward<Args>(args)...));
 }
 
@@ -268,5 +274,77 @@ inline auto select(Args&&... args) {
     return Switch::create(std::move(cases));
 }
 
+
+inline auto $cls(std::string name, IdentifierPtr parent, BlockPtr body) {
+    return ClassDeclaration::create(std::move(name), std::move(parent), std::move(body));
+}
+
+// Create new instance of class
+// Usage: newi("ClassName", {arg1, arg2, arg3})
+// Example: newi("Point", {lit(1), lit(2)})
+inline auto newi(std::string name, std::vector<ExpressionPtr> args) {
+    return NewInstance::create(std::move(name), std::move(args));
+}
+
+/**
+ * @brief Access member in class instance
+ *
+ * @param instance std::string
+ * @param member std::string
+ * @return MemberAccessPtr
+ *
+ * @code
+ * auto member = $prop("instance", "member");
+ * @endcode
+ *
+ * @code
+ * // Macro usage example
+ * auto member = prop(instance, member);
+ * @endcode
+ */
+inline auto $prop(std::string instance, std::string member) {
+    return MemberAccess::create(std::move(instance), std::move(member));
+}
+
+/**
+ * @brief Set member value in class instance
+ *
+ * @param member MemberAccessPtr
+ * @param value ExpressionPtr
+ * @return AssignmentPtr
+ *
+ * @code
+ * auto assignment = $set($prop("instance", "member"), value);
+ * @endcode
+ *
+ * @code
+ * // Macro usage example
+ * auto assignment = setm(prop(instance, member), value);
+ * @endcode
+ */
+inline auto setm(MemberAccessPtr member, ExpressionPtr value) {
+    return $set(std::move(member), std::move(value));
+}
+
+// Call member function in class instance
+/**
+ * @brief Call member function in class instance
+ *
+ * @param member MemberAccessPtr
+ * @param args std::vector<ExpressionPtr>
+ * @return MemberFunctionCallPtr
+ *
+ * @code
+ * auto call = callm($prop("instance", "method"), vars(arg1, arg2, arg3));
+ * @endcode
+ *
+ * @code
+ * // Macro usage example
+ * auto call = callm(prop(instance, method), vars(arg1, arg2, arg3));
+ * @endcode
+ */
+inline auto callm(MemberAccessPtr member, std::vector<ExpressionPtr> args) {
+    return MemberFunctionCall::create(std::move(member), std::move(args));
+}
 
 #endif //CPP_EVA_EXPRESSION_HELPERS_H

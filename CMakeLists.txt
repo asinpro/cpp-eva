@@ -28,4 +28,5 @@ add_executable(cpp_eva src/main.cpp
         src/tests/lambda_func_test.h
         src/tests/for_loop_test.h
         src/tests/switch_test.h
-        src/tests/inc_dec_test.h)
+        src/tests/inc_dec_test.h
+        src/tests/class_test.h)

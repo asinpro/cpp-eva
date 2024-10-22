@@ -37,7 +37,7 @@ const auto globalEnv = std::make_shared<Environment>(EvalMap{
 //        {"identifier", std::make_unique<Identifier>()},
 //        {"variable_declaration", std::make_unique<VariableDeclaration>()},
 //        {"assignment", std::make_unique<Assignment>()},
-//        {"function", std::make_unique<Function>()},
+//        {"function", std::make_unique<FunctionDefinition>()},
 //        {"call", std::make_unique<Call>()},
 //        {"return", std::make_unique<Return>()},
 //        {"lambda", std::make_unique<Lambda>()},

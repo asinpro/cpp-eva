@@ -18,14 +18,23 @@ inline bool operator==(const Null&, const Null&) {
     return true;
 }
 
-struct Function {
+struct FunctionDefinition {
     std::string name;
     std::vector<std::string> params;
     std::shared_ptr<Expression> body;
     std::shared_ptr<Environment> env;
 };
 
-using EvalResult = std::variant<int, std::string, bool, Null, Function>;
+struct ClassDefinition {
+    std::string name;
+    std::shared_ptr<Environment> env;
+};
+
+struct InstanceDefinition {
+    std::shared_ptr<Environment> env;
+};
+
+using EvalResult = std::variant<int, std::string, bool, Null, FunctionDefinition, ClassDefinition, InstanceDefinition>;
 using EvalMap = std::unordered_map<std::string, EvalResult>;
 
 #endif //CPP_EVA_EVAL_TYPES_H
