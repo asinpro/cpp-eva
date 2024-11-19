@@ -113,7 +113,7 @@ FunctionDefinition FunctionCall::resolveFunction(std::shared_ptr<Environment> en
 
 EvalResult Lambda::eval(std::shared_ptr<Environment> env) const {
     auto _this = const_cast<Lambda*>(this);
-    return FunctionDefinition(name, params, move(_this->body), env);
+    return FunctionDefinition{name, params, std::move(_this->body), env};
 }
 
 EvalResult AnonymousFunctionCall::eval(std::shared_ptr<Environment> env) const {
@@ -205,8 +205,8 @@ EvalResult ClassDeclaration::eval(std::shared_ptr<Environment> env) const {
     }
 
     auto classEnv = make_shared<Environment>(EvalMap{}, parentEnv);
-    evalBlock(classEnv);
-    env->define(name, ClassDefinition(name, classEnv));
+    void(evalBlock(classEnv));
+    env->define(name, ClassDefinition{name, classEnv});
 
     return Null{};
 }
@@ -218,14 +218,14 @@ EvalResult NewInstance::eval(std::shared_ptr<Environment> env) const {
     auto constructorDefinition = get<FunctionDefinition>(classDefinition.env->lookup("constructor"));
     auto constructorEnv = make_shared<Environment>(EvalMap{}, constructorDefinition.env);
 
-    const InstanceDefinition& instanceDefinition = InstanceDefinition(instanceEnv);
+    const InstanceDefinition& instanceDefinition = InstanceDefinition{instanceEnv};
     constructorEnv->define("self", instanceDefinition);
 
     for (size_t i = 1; i < constructorDefinition.params.size(); ++i) {
         constructorEnv->define(constructorDefinition.params[i], args[i - 1]->eval(env));
     }
 
-    constructorDefinition.body->eval(constructorEnv);
+    void(constructorDefinition.body->eval(constructorEnv));
 
     return instanceDefinition;
 }

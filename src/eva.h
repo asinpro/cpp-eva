@@ -13,8 +13,10 @@
 #include "eval_types.h"
 #include "environment.h"
 
+using namespace std::string_literals;
+
 const auto globalEnv = std::make_shared<Environment>(EvalMap{
-        {"VERSION", "0.1"},
+        {"VERSION", "0.1"s},
         {"null", Null{}},
         {"true", true},
         {"false", false},

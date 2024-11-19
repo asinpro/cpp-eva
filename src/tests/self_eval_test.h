@@ -10,7 +10,7 @@ void runSelfEvalTests(Eva& eva) {
     using namespace std;
 
     IASSERT(lit(101), 101);
-    SASSERT(lit("hello"), "hello");
+    SASSERT(lit("hello"s), "hello");
 }
 
 #endif //CPP_EVA_SELF_EVAL_TEST_H
