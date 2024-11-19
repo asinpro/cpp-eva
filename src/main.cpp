@@ -8,11 +8,11 @@ int main() {
 
     runTests(eva);
 
-//    Example usage:
+    // Example usage:
     auto exp = beg(
-            var(foo, 10)
+        var(foo, 10)
     );
-    std::cout << get<int>(eva.eval(std::move(exp))) << std::endl;
+    std::cout << std::get<int>(eva.eval(std::move(exp))) << std::endl;
 
     return 0;
 }

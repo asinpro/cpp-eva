@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <cctype>
 
-#define EASSERT(expr, value, type) assert(get<type>(eva.eval(expr)) == value)
+#define EASSERT(expr, value, type) assert(std::get<type>(eva.eval(expr)) == value)
 #define IASSERT(expr, value) EASSERT(expr, value, int)
 #define SASSERT(expr, value) EASSERT(expr, value, string)
 #define NASSERT(expr) EASSERT(expr, Null{}, Null)
