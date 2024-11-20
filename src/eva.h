@@ -14,6 +14,9 @@
 
 using namespace std::string_literals;
 
+/**
+ * Global environment with predefined values.
+ */
 const auto globalEnv = std::make_shared<Environment>(EvalMap{
     {"VERSION", "0.1"s},
     {"null", Null{}},
@@ -47,18 +50,38 @@ const auto globalEnv = std::make_shared<Environment>(EvalMap{
     //        {"program", std::make_unique<Program>()}
 });
 
+/**
+ * Class of Eva language interpreter.
+ *
+ * The eval method evaluates the expression and returns the result.
+ */
 class Eva
 {
 public:
     explicit Eva(std::shared_ptr<Environment> global = globalEnv)
         : global(global) {}
 
+    /**
+     * @brief Evaluate the expression in the global environment
+     *
+     * @param exp The expression to evaluate
+     *
+     * @return The result of the evaluation
+     */
     int evalGlobal(Expression &exp)
     {
         return 0;
         //        return _evalBody(exp, global);
     }
 
+    /**
+     * @brief Evaluate the expression in the given environment
+     *
+     * @param exp The expression to evaluate
+     * @param env The environment to evaluate the expression in
+     *
+     * @return The result of the evaluation
+     */
     EvalResult eval(ExpressionPtr exp, std::shared_ptr<Environment> env = nullptr);
 
 private:

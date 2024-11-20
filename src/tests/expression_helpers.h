@@ -12,8 +12,6 @@
 #define NONE id("null")
 #define none NONE
 
-#define ID_NAME(name) #name
-
 /**
  * @brief Print expression
  *

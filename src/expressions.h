@@ -8,6 +8,14 @@
 
 class Environment;
 
+/**
+ * Base class for all expressions.
+ *
+ * This class is used to define the interface for all expressions.
+ * It provides a virtual method eval that should be implemented by all derived classes.
+ *
+ * The eval method is used to evaluate the expression and return the result.
+ */
 class Expression
 {
 public:
@@ -24,6 +32,11 @@ public:
 
 using ExpressionPtr = std::unique_ptr<Expression>;
 
+/**
+ * This class is used to group multiple expressions together.
+ *
+ * The eval method evaluates each expression in the block in order and returns the result of the last expression.
+ */
 class Block : public Expression
 {
 public:
@@ -47,6 +60,12 @@ protected:
 
 using BlockPtr = std::unique_ptr<Block>;
 
+/**
+ * This class is used to evaluate a condition and return the result of the then or otherwise expression based on the condition.
+ *
+ * The eval method evaluates the condition expression and if the result is true, evaluates the then expression.
+ * If the result is false, evaluates the otherwise expression.
+ */
 class Condition : public Expression
 {
 public:
@@ -66,6 +85,12 @@ private:
     ExpressionPtr otherwise;
 };
 
+/**
+ * This class is used to evaluate a condition and a body expression in a loop.
+ *
+ * The eval method evaluates the condition expression and if the result is true, evaluates the body expression.
+ * This process is repeated until the condition expression evaluates to false.
+ */
 class Loop : public Expression
 {
 public:
@@ -84,6 +109,11 @@ private:
     ExpressionPtr body;
 };
 
+/**
+ * This class is used to represent an identifier in an expression.
+ *
+ * The eval method evaluates the identifier and returns the value associated with it in the environment.
+ */
 struct Identifier : public Expression
 {
 public:
@@ -107,6 +137,11 @@ protected:
 
 using IdentifierPtr = std::unique_ptr<Identifier>;
 
+/**
+ * This class is used to represent a literal value in an expression.
+ *
+ * The eval method returns the literal value.
+ */
 struct Literal : public Expression
 {
 public:
@@ -126,6 +161,11 @@ private:
     EvalResult value;
 };
 
+/**
+ * This class is used to represent a variable declaration
+ *
+ * The eval method evaluates the value expression and assigns it to the variable in the environment.
+ */
 class VariableDeclaration : public Expression
 {
 public:
@@ -146,6 +186,11 @@ private:
 
 using MemberAccessPtr = std::unique_ptr<class MemberAccess>;
 
+/**
+ * This class is used to represent an assignment
+ *
+ * The eval method evaluates the value expression and assigns it to the variable or member in the environment.
+ */
 class Assignment : public Expression
 {
 public:
@@ -188,6 +233,24 @@ enum BinaryOperationType
     LESS_OR_EQUAL
 };
 
+/**
+ * This class is used to represent a binary operation in an expression.
+ *
+ * The eval method evaluates the left and right expressions and performs the operation on them.
+ *
+ * The supported operations are:
+ * - addition
+ * - subtraction
+ * - multiplication
+ * - division
+ * - modulus
+ * - greater than
+ * - less than
+ * - equal
+ * - not equal
+ * - greater or equal
+ * - less or equal
+ */
 class BinaryOperation : public Expression
 {
 public:
@@ -207,6 +270,11 @@ private:
     ExpressionPtr right;
 };
 
+/**
+ * This class is used to represent a function declaration
+ *
+ * The eval method creates a new function definition and assigns it to the function name in the environment.
+ */
 class FunctionDeclaration : public Expression
 {
 public:
@@ -228,6 +296,11 @@ protected:
 
 using FunctionDeclarationPtr = std::unique_ptr<FunctionDeclaration>;
 
+/**
+ * This class is used to represent a lambda expression
+ *
+ * The eval method creates a new function definition and returns it.
+ */
 class Lambda : public FunctionDeclaration
 {
 public:
@@ -242,6 +315,11 @@ public:
     [[nodiscard]] EvalResult eval(std::shared_ptr<Environment> env) const override;
 };
 
+/**
+ * This class is used to represent a anonymous function call in an expression.
+ *
+ * The eval method evaluates the function and arguments expressions and calls the function with the arguments.
+ */
 class AnonymousFunctionCall : public Expression
 {
 public:
@@ -265,6 +343,11 @@ private:
     std::vector<ExpressionPtr> args;
 };
 
+/**
+ * This class is used to represent a named function call in an expression.
+ *
+ * The eval method evaluates the function and arguments expressions and calls the function with the arguments.
+ */
 class FunctionCall : public AnonymousFunctionCall
 {
 public:
@@ -289,6 +372,13 @@ private:
     std::vector<ExpressionPtr> args;
 };
 
+/**
+ * This class is used to represent a for loop in an expression.
+ *
+ * The eval method evaluates the init expression, then evaluates the condition expression.
+ * If the result is true, evaluates the body expression and then evaluates the modifier expression.
+ * This process is repeated until the condition expression evaluates to false.
+ */
 class ForLoop : public Expression
 {
 public:
@@ -309,6 +399,11 @@ private:
     ExpressionPtr body;
 };
 
+/**
+ * This class is used to represent a switch statement in an expression.
+ *
+ * The eval method evaluates each case expression in order and returns the result of the first case expression that evaluates to true.
+ */
 class Switch : public Expression
 {
 public:
@@ -326,6 +421,11 @@ private:
     std::vector<std::pair<ExpressionPtr, ExpressionPtr>> cases;
 };
 
+/**
+ * This class is used to represent a increment operation in an expression.
+ *
+ * The eval method evaluates the identifier expression and increments the value associated with it in the environment.
+ */
 class Increment : public Expression
 {
 public:
@@ -342,6 +442,11 @@ private:
     IdentifierPtr identifier;
 };
 
+/**
+ * This class is used to represent a decrement operation in an expression.
+ *
+ * The eval method evaluates the identifier expression and decrements the value associated with it in the environment.
+ */
 class Decrement : public Expression
 {
 public:
@@ -358,6 +463,11 @@ private:
     IdentifierPtr identifier;
 };
 
+/**
+ * This class is used to represent a class declaration
+ *
+ * The eval method creates a new class definition and assigns it to the class name in the environment.
+ */
 class ClassDeclaration : public Block
 {
 public:
@@ -377,6 +487,11 @@ private:
     ExpressionPtr body;
 };
 
+/**
+ * This class is used to represent a new instance creation
+ *
+ * The eval method evaluates the arguments expressions and creates a new instance of the class with the arguments.
+ */
 class NewInstance : public Expression
 {
 public:
@@ -395,6 +510,11 @@ private:
     std::vector<ExpressionPtr> args;
 };
 
+/**
+ * This class is used to represent a member access in created instance
+ *
+ * The eval method evaluates the instance expression and returns the value of the member associated with it.
+ */
 class MemberAccess : public Identifier
 {
 public:
@@ -422,6 +542,11 @@ private:
     std::string instance;
 };
 
+/**
+ * This class is used to represent a member function call in created instance
+ *
+ * The eval method evaluates the member access expression and calls the member function with the arguments.
+ */
 class MemberFunctionCall : public AnonymousFunctionCall
 {
 public:

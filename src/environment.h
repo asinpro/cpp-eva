@@ -7,17 +7,50 @@
 #include <exception>
 #include "eval_types.h"
 
+/**
+ * This class is used to represent an environment
+ *
+ * The environment is used to store variables and their values.
+ */
 class Environment
 {
 public:
     explicit Environment(EvalMap vars, std::shared_ptr<Environment> parent = nullptr)
         : vars(std::move(vars)), parent(parent) {}
 
-    // Add other necessary methods here
+    /**
+     * @brief Define a variable in the environment
+     *
+     * @param name The name of the variable
+     * @param value The value of the variable
+     *
+     * @return The value of the variable
+     *
+     * @throw std::runtime_error if the variable is already defined
+     */
     void define(const std::string &name, EvalResult value);
 
+    /**
+     * @brief Assign a value to a variable in the environment
+     *
+     * @param name The name of the variable
+     * @param value The value to assign
+     *
+     * @return The value of the variable
+     *
+     * @throw std::runtime_error if the variable is not defined
+     */
     EvalResult assign(const std::string &name, EvalResult value);
 
+    /**
+     * @brief Lookup the value of a variable in the environment
+     *
+     * @param name The name of the variable
+     *
+     * @return The value of the variable
+     *
+     * @throw std::runtime_error if the variable is not defined
+     */
     EvalResult lookup(const std::string &name) const;
 
 private:
