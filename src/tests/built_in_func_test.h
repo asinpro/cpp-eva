@@ -3,7 +3,8 @@
 
 #include "../eva.h"
 
-void runBuildInFunTest(Eva& eva) {
+void runBuildInFunTest(Eva &eva)
+{
 }
 
-#endif //CPP_EVA_BUILT_IN_FUNC_TEST_H
+#endif // CPP_EVA_BUILT_IN_FUNC_TEST_H

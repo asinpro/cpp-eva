@@ -16,7 +16,8 @@
 #include "inc_dec_test.h"
 #include "class_test.h"
 
-void runTests(Eva& eva) {
+void runTests(Eva &eva)
+{
     runSelfEvalTests(eva);
     runVariablesTests(eva);
     runBlockTest(eva);
@@ -36,4 +37,4 @@ void runTests(Eva& eva) {
     std::cerr << "All tests passed!" << std::endl;
 }
 
-#endif //CPP_EVA_TESTS_H
+#endif // CPP_EVA_TESTS_H

@@ -2,78 +2,65 @@
 #define CPP_EVA_SWITCH_TEST_H
 
 #include "test_utils.h"
-#include "../expression_helpers.h"
+#include "expression_helpers.h"
 #include "../eva.h"
 
-void runSwitchTest(Eva& eva) {
+void runSwitchTest(Eva &eva)
+{
     IASSERT(
-            beg(
-                    var(x, 10),
-                    select(when(eq(id(x), 10), 100),
-                           when(gt(id(x), 10), 200),
-                           any(300)
-                    )
-            )
-    ,100);
+        beg(
+            var("x", 10),
+            select(when(eq(id("x"), 10), 100),
+                   when(gt(id("x"), 10), 200),
+                   any(300))),
+        100);
 
     IASSERT(
-            beg(
-                    var(x, 20),
-                    select(when(eq(id(x), 10), 100),
-                           when(gt(id(x), 10), 200),
-                           any(300)
-                    )
-            )
-    ,200);
+        beg(
+            var("x", 20),
+            select(when(eq(id("x"), 10), 100),
+                   when(gt(id("x"), 10), 200),
+                   any(300))),
+        200);
 
     IASSERT(
-            beg(
-                    var(x, 1),
-                    select(when(eq(id(x), 10), 100),
-                           when(gt(id(x), 10), 200),
-                           any(300)
-                    )
-            )
-    ,300);
+        beg(
+            var("x", 1),
+            select(when(eq(id("x"), 10), 100),
+                   when(gt(id("x"), 10), 200),
+                   any(300))),
+        300);
 
     IASSERT(
-            beg(
-                    var(x, 10),
-                    select(when(eq(id(x), 10), 100),
-                           any(300)
-                    )
-            )
-    ,100);
+        beg(
+            var("x", 10),
+            select(when(eq(id("x"), 10), 100),
+                   any(300))),
+        100);
 
     IASSERT(
-            beg(
-                    var(x, 1),
-                    select(when(eq(id(x), 10), 100),
-                           any(300)
-                    )
-            )
-    ,300);
+        beg(
+            var("x", 1),
+            select(when(eq(id("x"), 10), 100),
+                   any(300))),
+        300);
 
     IASSERT(
-            beg(
-                    var(x, 10),
-                    select(when(eq(id(x), 10), 100))
-            )
-    ,100);
+        beg(
+            var("x", 10),
+            select(when(eq(id("x"), 10), 100))),
+        100);
 
     IASSERT(
-            beg(
-                    var(x, 10),
-                    select(any(100))
-            )
-    ,100);
+        beg(
+            var("x", 10),
+            select(any(100))),
+        100);
 
     // overflow test
     NASSERT(
-            beg(
-                    select()
-            )
-    );
+        beg(
+            select()));
 }
 
-#endif //CPP_EVA_SWITCH_TEST_H
+#endif // CPP_EVA_SWITCH_TEST_H
